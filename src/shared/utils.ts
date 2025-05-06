@@ -1,5 +1,6 @@
 import * as crypto from "crypto";
 import { DeviceType, type BaseMessage, type ProtocolMessage } from "./types";
+import os from "os";
 import {
   PROTOCOL_VERSION,
   ERROR_CODES,
@@ -126,14 +127,15 @@ export function isLocalIpAddress(ip: string): boolean {
  * Get local IP address
  */
 export function getLocalIpAddress(): string | null {
-  const interfaces = require("os").networkInterfaces();
+  const interfaces = os.networkInterfaces();
   for (const name of Object.keys(interfaces)) {
-    for (const iface of interfaces[name]) {
-      // Skip over non-IPv4 and internal (loopback) addresses
-      if (iface.family === "IPv4" && !iface.internal) {
-        return iface.address;
+    if (interfaces[name])
+      for (const iface of interfaces[name]) {
+        // Skip over non-IPv4 and internal (loopback) addresses
+        if (iface.family === "IPv4" && !iface.internal) {
+          return iface.address;
+        }
       }
-    }
   }
   return null;
 }

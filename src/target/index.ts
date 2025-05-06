@@ -1,10 +1,10 @@
 import * as dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 import ControlClient from "./controlClient";
-import KeySimulator from "./keySimulator";
+import MockKeySimulator from "./mockKeySimulator"; // Import the mock simulator
 import type { TargetDeviceConfig, TargetDeviceStatus } from "./types";
 import { createLogger } from "../shared/utils";
-import { ConnectionStatus } from "../shared/types";
+import { ConnectionStatus, DeviceType } from "../shared/types";
 import {
   COMMAND_TYPES,
   DEFAULT_DISCOVERY_PORT,
@@ -23,7 +23,7 @@ const logger = createLogger("TargetDevice");
 class TargetDevice {
   private readonly config: Required<TargetDeviceConfig>;
   private readonly controlClient: ControlClient;
-  private readonly keySimulator: KeySimulator;
+  private readonly keySimulator: MockKeySimulator;
   private readonly startTime: number = Date.now();
   private lastCommandTime: number = 0;
   private lastCommandType: string = "";
@@ -59,9 +59,8 @@ class TargetDevice {
       reconnectInitialDelay: config.reconnectInitialDelay || 1000,
     };
 
-    // Initialize key simulator
-    this.keySimulator = new KeySimulator({
-      engine: this.config.keySimulatorEngine,
+    // Initialize key simulator (using mock)
+    this.keySimulator = new MockKeySimulator({
       verbose: this.config.keySimulatorVerbose,
     });
 
@@ -315,28 +314,27 @@ class TargetDevice {
   }
 }
 
-// Create and start the target device if this file is run directly
-if (require.main === module) {
-  const targetDevice = new TargetDevice({
-    autoConnect: true,
-    autoAcceptPairing: process.env.AUTO_ACCEPT_PAIRING === "true",
-  });
+// Create and start the target device when this file is run directly
+// This is a workaround for Bun which doesn't support require.main === module
+const targetDevice = new TargetDevice({
+  autoConnect: true,
+  autoAcceptPairing: process.env.AUTO_ACCEPT_PAIRING === "true",
+});
 
-  // Handle graceful shutdown
-  process.on("SIGINT", () => {
-    logger.info("Received SIGINT signal, shutting down...");
-    targetDevice.stop();
-    process.exit(0);
-  });
+// Handle graceful shutdown
+process.on("SIGINT", () => {
+  logger.info("Received SIGINT signal, shutting down...");
+  targetDevice.stop();
+  process.exit(0);
+});
 
-  process.on("SIGTERM", () => {
-    logger.info("Received SIGTERM signal, shutting down...");
-    targetDevice.stop();
-    process.exit(0);
-  });
+process.on("SIGTERM", () => {
+  logger.info("Received SIGTERM signal, shutting down...");
+  targetDevice.stop();
+  process.exit(0);
+});
 
-  // Start target device
-  targetDevice.start();
-}
+// Start target device
+targetDevice.start();
 
 export default TargetDevice;
