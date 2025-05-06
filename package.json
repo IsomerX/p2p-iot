@@ -1,0 +1,29 @@
+{
+  "name": "p2p-iot",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "author": "IsomerX (bakshi)",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start:controller": "bun src/controller/index.ts",
+    "start:target": "ts-node src/target/index.ts",
+    "dev:controller": "nodemon --watch 'src/**/*.ts' --exec ts-node src/controller/index.ts",
+    "dev:target": "nodemon --watch 'src/**/*.ts' --exec ts-node src/target/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@types/ws": "^8.18.1",
+    "dotenv": "^16.5.0",
+    "local-devices": "^4.0.0",
+    "network-list": "^1.1.5",
+    "uuid": "^11.1.0",
+    "ws": "^8.18.2"
+  }
+}
